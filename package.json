@@ -1,0 +1,14 @@
+{
+  "name": "twitter_crawler",
+  "version": "1.0.0",
+  "description": "TP individuel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "bin": {
+    "twitter": "./index.js"
+  },
+  "author": "Platel Tcharlyson",
+  "license": ""
+}
