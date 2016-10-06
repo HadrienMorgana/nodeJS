@@ -10,5 +10,11 @@
     "twitter": "./index.js"
   },
   "author": "Platel Tcharlyson",
-  "license": ""
+  "license": "",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "inquirer": "^1.2.1",
+    "loadash": "0.0.1",
+    "twitter": "^1.4.0"
+  }
 }
