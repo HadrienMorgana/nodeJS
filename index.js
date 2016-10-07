@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-
+const http = require('http')
 const program = require('commander');
 const inquirer = require('inquirer');
 const fs = require('fs');
 const Twitter = require('twitter');
 const db = require('sqlite');
+const jade = require('jade');
+const spawn = require('child_process').spawn
 
 function start()
 {
@@ -44,7 +46,7 @@ function menu()
 			console.log(2);
 		}
 		else {
-			console.log(3);
+			askQuestion();
 		}
 	});
 }
@@ -107,7 +109,7 @@ function getTwitter(database, word)
 function createTable(database, hashtag)
 {
 	db.open(database).then(() => {
-		db.run('CREATE TABLE IF NOT EXISTS twitter (id INTEGER PRIMARY KEY, pseudo TEXT, description TEXT, picture TEXT, recherche sTEXT)').then(()=>{
+		db.run('CREATE TABLE IF NOT EXISTS twitter (id INTEGER PRIMARY KEY, pseudo TEXT, description TEXT, picture TEXT, recherche TEXT)').then(()=>{
 			getTwitter(database, hashtag);
 		})
 	})
@@ -115,7 +117,57 @@ function createTable(database, hashtag)
 
 function insertInDatabase(database, name, picture, description, word)
 {
-		db.run('INSERT INTO twitter VALUES(NULL,?,?,?,?)', name, description, picture, word);
+	db.all('SELECT * FROM twitter WHERE pseudo=? AND description=? AND recherche=?', name, description, word).then((response) => {
+		if(response.id != "")
+		{
+			db.run('INSERT INTO twitter VALUES(NULL,?,?,?,?)', name, description, picture, word);
+		}
+	})
+
 }
 
+function startServer(database)
+{
+		db.open(database).then(() => {
+			db.all('SELECT * FROM twitter').then((response) => {
+				http.createServer((req, res) => {
+					jade.renderFile('index.jade', { result: response }, function(err, html) {
+			            res.write(html)
+			            res.end()
+			        });
+				}).listen(8080)
+			})
+		})
+	spawn('open', ['http://localhost:8080']);
+}
+
+function askQuestion()
+{
+	let array = [];
+	fs.readdir("./", (err, files) => {
+		if(err)
+		{
+			console.error(err);
+		}
+		else
+		{
+			files
+			 .forEach(function(index){
+				 if(~index.indexOf(".db")) {
+					 array.push(index);
+				 }
+			 });
+			 inquirer.prompt([
+				{
+					type: 'list',
+					message: 'De quelle base voulez-vous voir les données ?',
+					name: 'database',
+					choices: array
+				}
+			]).then((save) => {
+				startServer(save.database);
+			})
+		}
+	})
+}
 start();
