@@ -15,6 +15,7 @@
     "commander": "^2.9.0",
     "inquirer": "^1.2.1",
     "loadash": "0.0.1",
+    "sqlite": "^2.2.0",
     "twitter": "^1.4.0"
   }
 }

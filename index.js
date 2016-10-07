@@ -4,6 +4,7 @@ const program = require('commander');
 const inquirer = require('inquirer');
 const fs = require('fs');
 const Twitter = require('twitter');
+const db = require('sqlite');
 
 function start()
 {
@@ -72,7 +73,6 @@ function chooseDatabase()
 			 			choices: array
 			 		}
 			 	]).then((save) => {
-					createTable(save.database);
 					inquirer.prompt([
  			 		{
  			 			type: 'input',
@@ -80,14 +80,14 @@ function chooseDatabase()
  			 			name: 'hashtag',
  			 		}
 				]).then((answer)=> {
-					getTwitter(answer.hashtag)
+					createTable(save.database, answer.hashtag);
 				})
 			})
 		}
 	})
 }
 
-function getTwitter(word)
+function getTwitter(database, word)
 {
 	var client = new Twitter({
 		consumer_key: 'kIpKDwmjDhHcgIagm1ISTokIu',
@@ -99,17 +99,23 @@ function getTwitter(word)
 	var params = {screen_name: 'nodejs'};
 	client.get('search/tweets', {q: word}, function(error, tweets, response) {
 		 tweets.statuses.forEach(function(index){
-			 console.log(index.text);
-			 console.log(index.user.name);
-			 console.log(index.user.profile_image_url);
+			 insertInDatabase(database, index.user.name, index.user.profile_image_url, index.text, word);
 		 })
 	});
 }
 
-function createTable(database)
+function createTable(database, hashtag)
 {
-	// db.open('twitter.db').then(() => {
-	// 	console.log("open");
-	// })
+	db.open(database).then(() => {
+		db.run('CREATE TABLE IF NOT EXISTS twitter (id INTEGER PRIMARY KEY, pseudo TEXT, description TEXT, picture TEXT, recherche sTEXT)').then(()=>{
+			getTwitter(database, hashtag);
+		})
+	})
 }
+
+function insertInDatabase(database, name, picture, description, word)
+{
+		db.run('INSERT INTO twitter VALUES(NULL,?,?,?,?)', name, description, picture, word);
+}
+
 start();
