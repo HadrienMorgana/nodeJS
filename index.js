@@ -118,13 +118,12 @@ function createTable(database, hashtag, insert)
 
 function insertInDatabase(database, name, picture, description, word)
 {
-	db.all('SELECT * FROM twitter WHERE pseudo=? AND description=? AND recherche=?', name, description, word).then((response) => {
-		if(response.id != "")
+	db.all('SELECT count(*) as count FROM twitter WHERE pseudo=? AND description=? AND recherche=?', name, description, word).then((response) => {
+		if(response[0].count == 0)
 		{
 			db.run('INSERT INTO twitter VALUES(NULL,?,?,?,?)', name, description, picture, word);
 		}
 	})
-
 }
 
 function startServer(database)
