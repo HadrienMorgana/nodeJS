@@ -96,12 +96,18 @@ function getTwitter(database, word)
 
 	var params = {screen_name: 'nodejs'};
 	client.get('search/tweets', {q: word}, function(error, tweets, response) {
+		let i = 0;
 		 tweets.statuses.forEach(function(index){
+			 i++;
 			 insertInDatabase(database, index.user.name, index.user.profile_image_url, index.text, word);
+			 if(i == tweets.statuses.length)
+			 {
+				 console.log('Les données ont été correctement insérées');
+			 	 menu();
+			 }
 		 })
+		 console.log('Les données sont en cours d\'insertion');
 	});
-	console.log('Les données ont été correctement insérées');
-	menu();
 }
 
 function createTable(database, hashtag, insert)
