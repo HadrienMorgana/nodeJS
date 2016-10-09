@@ -12,11 +12,14 @@
   "author": "Platel Tcharlyson",
   "license": "",
   "dependencies": {
+    "bluebird": "^3.4.6",
     "commander": "^2.9.0",
+    "gulp-util": "^3.0.7",
     "inquirer": "^1.2.1",
     "jade": "^1.11.0",
     "loadash": "0.0.1",
     "sqlite": "^2.2.0",
-    "twitter": "^1.4.0"
+    "twitter": "^1.4.0",
+    "xlsx": "^0.8.0"
   }
 }
