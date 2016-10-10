@@ -10,7 +10,7 @@ const spawn = require('child_process').spawn
 const xlsx = require('xlsx');
 const Promise = require('bluebird');
 const gutil = require('gulp-util');
-
+const questions = require('./questions.json');
 function start()
 {
 	program
@@ -47,16 +47,7 @@ function start()
 function menu()
 {
 	inquirer.prompt([
-		{
-			type: 'list',
-			message: 'Que voulez-vous faire ?',
-			name: 'choice',
-			choices: [
-			'Enregister les données en base',
-			'Exporter les données en BDD (excel)',
-			'Lancer le serveur web'
-			]
-		}
+		questions.questionOne
 	]).then((answer) => {
 		if(answer.choice == "Enregister les données en base")
 		{
