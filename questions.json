@@ -1,0 +1,14 @@
+{
+  "questionOne":
+    {
+      "type": "list",
+      "message": "Que voulez-vous faire ?",
+      "name": "choice",
+      "choices": [
+      "Enregister les données en base",
+      "Exporter les données en BDD (excel)",
+      "Lancer le serveur web",
+      "Quitter l'application"
+      ]
+    }
+}
