@@ -68,6 +68,9 @@ function menu()
 				generateExcel(response);
 			})
 		}
+		else if (answer.choice == "Quitter l'application") {
+			process.exit(1);
+		}
 		else {
 			askQuestion("De quelle base voulez-vous voir les données ?").then((response)=>{
 				startServer(response);
