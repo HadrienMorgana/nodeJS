@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
 //*********DECLARATION DES CONSTANTES********
-const http = require('http')
+const http = require('http');
 const program = require('commander');
 const inquirer = require('inquirer');
 const fs = require('fs');
 const Twitter = require('twitter');
 const db = require('sqlite');
 const jade = require('jade');
-const spawn = require('child_process').spawn
+const spawn = require('child_process').spawn;
 const xlsx = require('xlsx');
-const Promise = require('bluebird');
+const promise = require('bluebird');
 const gutil = require('gulp-util');
 const questions = require('./questions.json');
 const configuration = require('./configuration.json');
@@ -48,7 +48,7 @@ function start()
 		  }
 		});
 	} else if (program.export) { // Pour l'option -e (export)
-			if(program.export != true && program.export.indexOf(".db") > -1) // Si le champ comporte un nom avec l'extension .db
+			if(program.export !== true && program.export.indexOf(".db") > -1) // Si le champ comporte un nom avec l'extension .db
 			{
 				generateExcel(program.export); // Export d'une base au format excel
 			}
@@ -56,12 +56,12 @@ function start()
 				console.log('Veuillez retaper le nom de la base en incluant l\'extention .db');
 			}
 	} else if (program.run) { // Pour l'option -r (run)
-		if(program.run != true && program.run.indexOf(".db") > -1)
+		if(program.run !== true && program.run.indexOf(".db") > -1)
 		{
 			startServer(program.run); // Lancement du serveur web pour une base choisie
 		}
 		else {
-			console.log('Veuillez retaper le nom de la base en incluant l\'extention .db')
+			console.log('Veuillez retaper le nom de la base en incluant l\'extention .db');
 		}
 	} else {
 		program.help();
@@ -81,13 +81,13 @@ function menu()
 		 			 		questions.questionTwo
 						]).then((search)=> {
 							createTable(save, search.hashtag, true); // Création d'une table pour la table contenu dans la variable save, passage du hashtag à rechercher pour la fonction getTwitter
-						})
-					})
+						});
+					});
 		}
 		else if (answer.choice == "Exporter les données en BDD (excel)") {
 			askQuestion("De quelle base voulez-vous extraire les données ?").then((response)=>{
 				generateExcel(response); // Génération de la table excel
-			})
+			});
 		}
 		else if (answer.choice == "Quitter l'application") {
 			process.exit(1);
@@ -95,7 +95,7 @@ function menu()
 		else {
 			askQuestion("De quelle base voulez-vous voir les données ?").then((response)=>{
 				startServer(response); // Lancement du serveur web
-			})
+			});
 		}
 	});
 }
@@ -121,7 +121,7 @@ function getTwitter(database, word)
 				 console.log('Les données ont été correctement insérées');
 			 	 menu(); // Affichage du menu
 			 }
-		 })
+		 });
 		 console.log('Les données sont en cours d\'insertion'); // Affichage asynchrone
 	});
 }
@@ -131,23 +131,23 @@ function createTable(database, hashtag, insert)
 {
 	db.open(database).then(() => {
 		db.run('CREATE TABLE IF NOT EXISTS twitter (id INTEGER PRIMARY KEY, pseudo TEXT, description TEXT, picture TEXT, recherche TEXT)').then(()=>{
-			if(insert == true)
+			if(insert === true)
 			{
 				getTwitter(database, hashtag); // Passage des paramètres à la fonction
 			}
-		})
-	})
+		});
+	});
 }
 
 // Fonction d'insertion en base
 function insertInDatabase(database, name, picture, description, word)
 {
 	db.all('SELECT count(*) as count FROM twitter WHERE pseudo=? AND description=? AND recherche=?', name, description, word).then((response) => { // Vérifier si la donnée n'existe pas déjà
-		if(response[0].count == 0)
+		if(response[0].count === 0)
 		{
 			db.run('INSERT INTO twitter VALUES(NULL,?,?,?,?)', name, description, picture, word); //  Si la donnée n'existe pas en base, insertion de celle-ci
 		}
-	})
+	});
 }
 
 // Fonction lancement du serveur
@@ -157,12 +157,12 @@ function startServer(database)
 			retrieveData().then((response) => {
 				http.createServer((req, res) => {
 					jade.renderFile('index.jade', { result: response }, function(err, html) { // Utilisation du module jade pour passer à la vue les résultats de la réquete SQLITE
-			            res.write(html)
-			            res.end()
+			            res.write(html);
+			            res.end();
 			        });
-				}).listen(8080)
-			})
-		})
+				}).listen(8080);
+			});
+		});
 	spawn('open', ['http://localhost:8080']); // Ouverture du navigateur
 }
 
@@ -172,7 +172,7 @@ function generateExcel(database)
 	db.open(database).then(() => {
 		retrieveData().then((data) => {
 			let bigArray = [];
-			bigArray.push(["Id", "Pseudo", "Description", "Picture", "Recherche"])
+			bigArray.push(["Id", "Pseudo", "Description", "Picture", "Recherche"]);
 			data.forEach(function(index) // Boucle de création de la data au format adéquat
 			{
 				var array = [];
@@ -182,19 +182,19 @@ function generateExcel(database)
 				array.push(index.picture);
 				array.push(index.recherche);
 				bigArray.push(array);
-			})
+			});
 
-			var data = bigArray; // [{COLUMN_NAME, COLUMN_NAME},{DATA_ROW1, DATA_ROW1},{DATA_ROW2, DATA_ROW2}]
+			var lastData = bigArray; // [{COLUMN_NAME, COLUMN_NAME},{DATA_ROW1, DATA_ROW1},{DATA_ROW2, DATA_ROW2}]
 			var ws_name = "Twitter Crawler"; // Nom de la feuille
-			var wb = new Workbook(), ws = sheet_from_array_of_arrays(data);
+			var wb = new Workbook(), ws = sheet_from_array_of_arrays(lastData);
 			wb.SheetNames.push(ws_name);
 			wb.Sheets[ws_name] = ws;
 			name = database.replace('.db', '.xlsx');
 			xlsx.writeFile(wb, name); // Ecriture du fichier
 			spawn('open', [name]); // Ouverture
-			console.log('Ouverture du fichier généré en cours')
-		})
-	})
+			console.log('Ouverture du fichier généré en cours');
+		});
+	});
 
 }
 
@@ -216,7 +216,7 @@ function sheet_from_array_of_arrays(data, opts) {
 			if(range.e.r < R) range.e.r = R;
 			if(range.e.c < C) range.e.c = C;
 			var cell = {v: data[R][C] };
-			if(cell.v == null) continue;
+			if(cell.v === null) continue;
 			var cell_ref = xlsx.utils.encode_cell({c:C,r:R});
 
 			if(typeof cell.v === 'number') cell.t = 'n';
@@ -244,7 +244,7 @@ function Workbook() {
 // Fonction d'intéraction avec l'utilisateur
 function askQuestion(request)
 {
-	return new Promise(function(resolve,reject){ // Utilisation de bluebird pour retourner une promesse
+	return new promise(function(resolve,reject){ // Utilisation de bluebird pour retourner une promesse
 		let array = [];
 		fs.readdir("./", (err, files) => { // Lecture du dossier racine pour trouver les databases existantes
 			if(err)
@@ -270,15 +270,15 @@ function askQuestion(request)
 						}
 					]).then((save) => {
 						resolve(save.database);
-					})
+					});
 				 }
 				 else {
 					 console.log("Veuillez commencer par créer une base en utilisant twitter -d [nom de la base]");
 				 	 process.exit(1);
 				 }
 			}
-		})
-	})
+		});
+	});
 }
 
 // Fonction de récupération des données de la table twitter
