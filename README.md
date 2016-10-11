@@ -4,7 +4,7 @@ L'application Twitter Crawler est un script NodeJS en CLI qui permet de récupé
 Les données retournées par l'API sont sauvegardées dans la base de notre choix, préalablement créee via l'option -c. Une fonctionnalité permet d'exporter les données de la base au format Excel.
 Une option permet aussi de générer un serveur web afin d'afficher le contenu de notre base au format HTML.
 
-*Lancement de l'application, accés au menu.**
+**Lancement de l'application, accés au menu.**
 >twitter -s
 
 **Création d'une base de données.**
