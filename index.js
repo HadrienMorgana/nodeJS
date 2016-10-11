@@ -11,6 +11,7 @@ const xlsx = require('xlsx');
 const Promise = require('bluebird');
 const gutil = require('gulp-util');
 const questions = require('./questions.json');
+const configuration = require('./configuration.json');
 function start()
 {
 	program
@@ -42,9 +43,21 @@ function start()
 		  }
 		});
 	} else if (program.export) {
-			generateExcel(program.export);
+			if(program.export != true && program.export.indexOf(".db") > -1)
+			{
+				generateExcel(program.export);
+			}
+			else {
+				console.log('Veuillez retaper le nom de la base en incluant l\'extention .db')
+			}
 	} else if (program.run) {
+		if(program.run != true && program.run.indexOf(".db") > -1)
+		{
 			startServer(program.run);
+		}
+		else {
+			console.log('Veuillez retaper le nom de la base en incluant l\'extention .db')
+		}
 	} else {
 		program.help();
 	}
@@ -88,10 +101,10 @@ function menu()
 function getTwitter(database, word)
 {
 	var client = new Twitter({
-		consumer_key: 'kIpKDwmjDhHcgIagm1ISTokIu',
-		consumer_secret: 'G1EIYmx9OESvAQtDi3XnGFmWRG9v3FGKbedmhAhQITFjY9BX5u',
-		access_token_key: '783766110374068224-2ylLRi2v9v1z7quQooXprZneQwduw4q',
-		access_token_secret: '7zgid8P3gNZYjKPhcwQTvHC3Ep2R4v2J1G98VueG8GgZX'
+		consumer_key: configuration.consumer_key,
+		consumer_secret: configuration.consumer_secret,
+		access_token_key: configuration.access_token_key,
+		access_token_secret: configuration.access_token_secret
 	});
 
 	var params = {screen_name: 'nodejs'};
@@ -169,8 +182,9 @@ function generateExcel(database)
 			var wb = new Workbook(), ws = sheet_from_array_of_arrays(data);
 			wb.SheetNames.push(ws_name);
 			wb.Sheets[ws_name] = ws;
-			xlsx.writeFile(wb, 'twitter.xlsx');
-			spawn('open', ['twitter.xlsx']);
+			name = database.replace('.db', '.xlsx');
+			xlsx.writeFile(wb, name);
+			spawn('open', [name]);
 		})
 	})
 
