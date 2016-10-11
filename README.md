@@ -8,10 +8,10 @@ Une option permet aussi de générer un serveur web afin d'afficher le contenu d
 >twitter -s
 
 **Export au format excel.**
->twitter -e [database]
+>twitter -e [nom de la base.db]
 
 **Lancement du serveur web.**
->twitter -r [database]
+>twitter -r [nom de la base.db]
 
 **Création d'une base de données.**
 >twitter -c [nom de la base.db]
