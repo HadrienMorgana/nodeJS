@@ -7,6 +7,12 @@ Une option permet aussi de générer un serveur web afin d'afficher le contenu d
 **Lancement de l'application, accés au menu.**
 >twitter -s
 
+**Export au format excel.**
+>twitter -e [database]
+
+**Lancement du serveur web.**
+>twitter -r [database]
+
 **Création d'une base de données.**
 >twitter -c [nom de la base.db]
 
