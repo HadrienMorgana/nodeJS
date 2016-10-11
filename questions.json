@@ -10,5 +10,11 @@
       "Lancer le serveur web",
       "Quitter l'application"
       ]
+    },
+  "questionTwo":
+    {
+      "type": "input",
+      "message": "Tapez le hashtag à rechercher",
+      "name": "hashtag"
     }
 }

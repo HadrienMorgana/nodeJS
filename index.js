@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+
+//*********DECLARATION DES CONSTANTES********
 const http = require('http')
 const program = require('commander');
 const inquirer = require('inquirer');
@@ -12,6 +14,9 @@ const Promise = require('bluebird');
 const gutil = require('gulp-util');
 const questions = require('./questions.json');
 const configuration = require('./configuration.json');
+//**********************************************
+
+//Fonction start utilisant commander pour l'ajout des options
 function start()
 {
 	program
@@ -25,35 +30,35 @@ function start()
 
 	if(program.start)
 	{
-		menu();
+		menu(); //Lancement du menu pour l'option -s (start)
 	} else if (program.create) {
 		if(program.create.indexOf(".db") > -1){
-			createTable(program.create, "", false);
+			createTable(program.create, "", false); //Creation d'une base pour l'option -c (create) avec le nom de la base.db
 		}
 		else {
-			console.log('Veuillez retaper le nom de la base en incluant l\'extention .db');
+			console.log('Veuillez retaper le nom de la base en incluant l\'extention .db'); //Erreur si le nom de la base ne comporte pas l'extension.db
 		}
 	} else if (program.delete) {
-		fs.exists('./'+program.delete, function(exists) {
+		fs.exists('./'+program.delete, function(exists) { //Suppression de la base si celle-ci existe
 		  if(exists) {
-		    console.log(gutil.colors.green('File exists. Deleting now ...'));
-		    fs.unlink('./'+program.delete);
+		    console.log(gutil.colors.green('File exists. Deleting now ...')); //Affichage en couleur de l'information via gutil
+		    fs.unlink('./'+program.delete); //Suppresion du fichier
 		  } else {
 		    console.log(gutil.colors.red('File not found, so not deleting.'));
 		  }
 		});
-	} else if (program.export) {
-			if(program.export != true && program.export.indexOf(".db") > -1)
+	} else if (program.export) { // Pour l'option -e (export)
+			if(program.export != true && program.export.indexOf(".db") > -1) // Si le champ comporte un nom avec l'extension .db
 			{
-				generateExcel(program.export);
+				generateExcel(program.export); // Export d'une base au format excel
 			}
 			else {
-				console.log('Veuillez retaper le nom de la base en incluant l\'extention .db')
+				console.log('Veuillez retaper le nom de la base en incluant l\'extention .db');
 			}
-	} else if (program.run) {
+	} else if (program.run) { // Pour l'option -r (run)
 		if(program.run != true && program.run.indexOf(".db") > -1)
 		{
-			startServer(program.run);
+			startServer(program.run); // Lancement du serveur web pour une base choisie
 		}
 		else {
 			console.log('Veuillez retaper le nom de la base en incluant l\'extention .db')
@@ -63,28 +68,25 @@ function start()
 	}
 }
 
+// Function menu appelée pour intéragir avec l'utilisateur
 function menu()
 {
 	inquirer.prompt([
-		questions.questionOne
+		questions.questionOne // Question 1 du fichier questions.json
 	]).then((answer) => {
 		if(answer.choice == "Enregister les données en base")
 		{
 			askQuestion("Dans quelle base voulez-vous sauvegarder les données ?").then((save)=>{
 							inquirer.prompt([
-		 			 		{
-		 			 			type: 'input',
-		 			 			message: 'Tapez le hashtag à rechercher',
-		 			 			name: 'hashtag',
-		 			 		}
+		 			 		questions.questionTwo
 						]).then((search)=> {
-							createTable(save, search.hashtag, true);
+							createTable(save, search.hashtag, true); // Création d'une table pour la table contenu dans la variable save, passage du hashtag à rechercher pour la fonction getTwitter
 						})
 					})
 		}
 		else if (answer.choice == "Exporter les données en BDD (excel)") {
 			askQuestion("De quelle base voulez-vous extraire les données ?").then((response)=>{
-				generateExcel(response);
+				generateExcel(response); // Génération de la table excel
 			})
 		}
 		else if (answer.choice == "Quitter l'application") {
@@ -92,12 +94,13 @@ function menu()
 		}
 		else {
 			askQuestion("De quelle base voulez-vous voir les données ?").then((response)=>{
-				startServer(response);
+				startServer(response); // Lancement du serveur web
 			})
 		}
 	});
 }
 
+// Fonction pour récupérer les conversations autour d'un mot clé passé en paramètre
 function getTwitter(database, word)
 {
 	var client = new Twitter({
@@ -108,65 +111,69 @@ function getTwitter(database, word)
 	});
 
 	var params = {screen_name: 'nodejs'};
-	client.get('search/tweets', {q: word}, function(error, tweets, response) {
+	client.get('search/tweets', {q: word}, function(error, tweets, response) { // API call
 		let i = 0;
-		 tweets.statuses.forEach(function(index){
+		 tweets.statuses.forEach(function(index){ // Boucle sur chaque résultat
 			 i++;
-			 insertInDatabase(database, index.user.name, index.user.profile_image_url, index.text, word);
-			 if(i == tweets.statuses.length)
+			 insertInDatabase(database, index.user.name, index.user.profile_image_url, index.text, word); // Insertion en base
+			 if(i == tweets.statuses.length) // Quand toutes les insertions sont terminées
 			 {
 				 console.log('Les données ont été correctement insérées');
-			 	 menu();
+			 	 menu(); // Affichage du menu
 			 }
 		 })
-		 console.log('Les données sont en cours d\'insertion');
+		 console.log('Les données sont en cours d\'insertion'); // Affichage asynchrone
 	});
 }
 
+// Function de création de table
 function createTable(database, hashtag, insert)
 {
 	db.open(database).then(() => {
 		db.run('CREATE TABLE IF NOT EXISTS twitter (id INTEGER PRIMARY KEY, pseudo TEXT, description TEXT, picture TEXT, recherche TEXT)').then(()=>{
 			if(insert == true)
 			{
-				getTwitter(database, hashtag);
+				getTwitter(database, hashtag); // Passage des paramètres à la fonction
 			}
 		})
 	})
 }
 
+// Fonction d'insertion en base
 function insertInDatabase(database, name, picture, description, word)
 {
-	db.all('SELECT count(*) as count FROM twitter WHERE pseudo=? AND description=? AND recherche=?', name, description, word).then((response) => {
+	db.all('SELECT count(*) as count FROM twitter WHERE pseudo=? AND description=? AND recherche=?', name, description, word).then((response) => { // Vérifier si la donnée n'existe pas déjà
 		if(response[0].count == 0)
 		{
-			db.run('INSERT INTO twitter VALUES(NULL,?,?,?,?)', name, description, picture, word);
+			db.run('INSERT INTO twitter VALUES(NULL,?,?,?,?)', name, description, picture, word); //  Si la donnée n'existe pas en base, insertion de celle-ci
 		}
 	})
 }
 
+// Fonction lancement du serveur
 function startServer(database)
 {
 		db.open(database).then(() => {
-			db.all('SELECT * FROM twitter').then((response) => {
+			retrieveData().then((response) => {
 				http.createServer((req, res) => {
-					jade.renderFile('index.jade', { result: response }, function(err, html) {
+					jade.renderFile('index.jade', { result: response }, function(err, html) { // Utilisation du module jade pour passer à la vue les résultats de la réquete SQLITE
 			            res.write(html)
 			            res.end()
 			        });
 				}).listen(8080)
 			})
 		})
-	spawn('open', ['http://localhost:8080']);
+	spawn('open', ['http://localhost:8080']); // Ouverture du navigateur
 }
 
+// Génération excel
 function generateExcel(database)
 {
 	db.open(database).then(() => {
 		retrieveData().then((data) => {
 			let bigArray = [];
 			bigArray.push(["Id", "Pseudo", "Description", "Picture", "Recherche"])
-			data.forEach(function(index)
+			data.forEach(function(index) // Boucle de création de la data au format adéquat
 			{
 				var array = [];
 				array.push(index.id);
@@ -177,25 +184,28 @@ function generateExcel(database)
 				bigArray.push(array);
 			})
 
-			var data = bigArray;
-			var ws_name = "Twitter Crawler";
+			var data = bigArray; // [{COLUMN_NAME, COLUMN_NAME},{DATA_ROW1, DATA_ROW1},{DATA_ROW2, DATA_ROW2}]
+			var ws_name = "Twitter Crawler"; // Nom de la feuille
 			var wb = new Workbook(), ws = sheet_from_array_of_arrays(data);
 			wb.SheetNames.push(ws_name);
 			wb.Sheets[ws_name] = ws;
 			name = database.replace('.db', '.xlsx');
-			xlsx.writeFile(wb, name);
-			spawn('open', [name]);
+			xlsx.writeFile(wb, name); // Ecriture du fichier
+			spawn('open', [name]); // Ouverture
+			console.log('Ouverture du fichier généré en cours')
 		})
 	})
 
 }
 
+// Fonction de conversion des dates pour le format excel
 function datenum(v, date1904) {
 	if(date1904) v+=1462;
 	var epoch = Date.parse(v);
 	return (epoch - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
 }
 
+// Fonction de purification des données à insérer pour excel
 function sheet_from_array_of_arrays(data, opts) {
 	var ws = {};
 	var range = {s: {c:10000000, r:10000000}, e: {c:0, r:0 }};
@@ -224,17 +234,19 @@ function sheet_from_array_of_arrays(data, opts) {
 	return ws;
 }
 
+// Instanciation de la "PAGE/Zone de travail" excel
 function Workbook() {
 	if(!(this instanceof Workbook)) return new Workbook();
 	this.SheetNames = [];
 	this.Sheets = {};
 }
 
+// Fonction d'intéraction avec l'utilisateur
 function askQuestion(request)
 {
-	return new Promise(function(resolve,reject){
+	return new Promise(function(resolve,reject){ // Utilisation de bluebird pour retourner une promesse
 		let array = [];
-		fs.readdir("./", (err, files) => {
+		fs.readdir("./", (err, files) => { // Lecture du dossier racine pour trouver les databases existantes
 			if(err)
 			{
 				console.error(err);
@@ -269,9 +281,11 @@ function askQuestion(request)
 	})
 }
 
+// Fonction de récupération des données de la table twitter
 function retrieveData()
 {
 		return db.all('SELECT * FROM twitter');
 }
 
+// Lancement du programme
 start();
