@@ -16,6 +16,8 @@ function start()
 	program
 		.version('1.0.0')
 		.option('-s, --start', 'Start twitter crawler')
+		.option('-e, --export [database]', 'Export to excel')
+		.option('-r, --run [database]', 'Run web server')
 		.option('-c, --create [database]', 'Create database to save data')
 		.option('-d, --delete [database]', 'Delete database to erase data')
 		.parse(process.argv);
@@ -39,6 +41,10 @@ function start()
 		    console.log(gutil.colors.red('File not found, so not deleting.'));
 		  }
 		});
+	} else if (program.export) {
+			generateExcel(program.export);
+	} else if (program.run) {
+			startServer(program.run);
 	} else {
 		program.help();
 	}
